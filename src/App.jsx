@@ -4,7 +4,7 @@ import ProtectedRoute from './components/ProtectedServices';
 import LoginPewawancara from './pages/LoginPewawancara';
 import CekPeserta from './pages/CekPeserta';
 import WawancaraPeserta from './pages/WawancaraPeserta';
-import SelesaiPeserta from './pages/SelesaiPeserta';
+// import SelesaiPeserta from './pages/SelesaiPeserta';
 import './App.css'
 
 function App() {
