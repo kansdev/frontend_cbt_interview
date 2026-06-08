@@ -18,6 +18,7 @@ export const ApiCekPeserta = async (nomorPendaftaran) => {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
+        localStorage.setItem('peserta', JSON.stringify(response.data.data));
         return response.data;
     } catch (error) {
         // Lempar error yang lebih spesifik jika ada response dari server atau jaringan error
