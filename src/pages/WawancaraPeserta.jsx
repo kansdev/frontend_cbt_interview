@@ -7,35 +7,65 @@ import { simpanJawabanInterview } from "../services/cbtServices";
 const CekPeserta = () => {
     // Menangkap :id_siswa dari URL rute App.jsx
     const { user_id } = useParams(); 
+    const { nomor_pendaftaran } = useParams(); 
     const [ peserta, setPeserta ] = useState(null);
     const [ loading, setLoading ] = useState(false);
     const [error, setError] = useState(null);
     const [kategoriPertanyaan, setKategoriPertanyaan] = useState([]);
+    const [jawaban, setJawaban] = useState({});
+    const [catatan, setCatatan] = useState("");
+    const [kesimpulan, setKesimpulan] = useState("");
+    const [deskripsi, setDeskripsi] = useState({});
+    const [pewawancara, setPewawancara] = useState(null);
     const navigate = useNavigate();
 
     const handleSubmitWawancara = async (e) => {
         e.preventDefault();
         setLoading(true);
-        
+        setError(null);
+
+        const pewawancaraData = localStorage.getItem('pewawancara');
+        const payload = {
+            nomor_pendaftaran: peserta?.nomor_pendaftaran,
+            user_id: peserta?.user_id,
+            jawaban,
+            catatan,
+            deskripsi,
+            kesimpulan,
+            pewawancara: pewawancaraData ? JSON.parse(pewawancaraData) : null
+        };
+        console.log("Data pewawancara:", pewawancaraData ? JSON.parse(pewawancaraData) : null);
+        console.log("Payload yang akan disimpan:", payload);
+
+        // return;
+
         try {
-            // Tulis logika simpan nilai wawancara ke API Laravel Anda di sini nanti
-            console.log("Menyimpan penilaian untuk siswa ID:", user_id);
-            alert("Penilaian berhasil disimpan!");
-            // navigate('/'); // Kembali ke halaman utama setelah selesai
+            const response = await simpanJawabanInterview(payload);
+            console.log("Response dari API:", response);
+            navigate(`/wawancara/selesai/${nomor_pendaftaran}`);
         } catch (error) {
-            console.error(error);
+            console.error("Error saat menyimpan jawaban:", error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        const pewawancaraData = localStorage.getItem('pewawancara');
+        if (!pewawancaraData) {
+            navigate('/'); // Redirect ke halaman login jika data pewawancara tidak ada
+        }
+        setPewawancara(JSON.parse(pewawancaraData));
+    }, [navigate]);
+
+    useEffect(() => {
         const fetchDataDetail = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`https://cbt.kansdev.my.id/api/wawancara/${user_id}`); // 👈 Tembak API
+                const response = await axios.get(`https://spmb.smknusantara1kotang.sch.id/api/data-registrasi/interview/${nomor_pendaftaran}`); // 👈 Tembak API
                 
                 if (response.status && response.data.status === "success") {
+                    console.log("Data peserta ditemukan:", response.data.data);
                     setPeserta(response.data.data); // 👈 Simpan data ke state
                 }
             } catch (err) {
@@ -46,10 +76,24 @@ const CekPeserta = () => {
             }
         }
 
-        if (user_id) {
+        if (user_id || nomor_pendaftaran) {
             fetchDataDetail();
         }
-    }, [user_id]) 
+    }, [nomor_pendaftaran, user_id]); 
+
+    const handleSkorChange = (kode, skor) => {
+        setJawaban((prev) => ({
+            ...prev,
+            [kode]: skor
+        }));
+    }
+
+    const handleDeskripsiChange = (kodeKategori, value) => {
+        setDeskripsi((prev) => ({
+            ...prev,
+            [kodeKategori]: value
+        }));
+    }
     
     // Maping data form pertanyaan wawancara ke form yang ada di return
     useEffect(() => {
@@ -123,6 +167,19 @@ const CekPeserta = () => {
 
         setKategoriPertanyaan(data);
     }, [])
+
+    if (loading) {
+        return (
+            <div className='container'>
+                <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
+                    <div className="text-center p-5 shadow bg-white rounded">
+                        <h2 className="fw-bold">Sedang Menyimpan...</h2>
+                        <div className="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>                
+            </div>
+        )
+    }
     
     // Render form
     return (
@@ -130,6 +187,7 @@ const CekPeserta = () => {
             <form onSubmit={handleSubmitWawancara}>        
                 <div className="card shadow-sm mb-4 bg-light border-start border-info border-4">
                     <div className="card-body">
+                        {/* Bagian Data Singkat Peserta Wawancara */}
                         <h5 className="card-title fw-bold text-info mb-3">Data Singkat Peserta Wawancara</h5>
                         <div className="row g-2 fs-6">
                             <div className="col-sm-3 fw-semibold">Nomor Registrasi</div>
@@ -149,7 +207,7 @@ const CekPeserta = () => {
 
                             <div className="col-sm-3 fw-semibold">Pilihan Jurusan 2</div>
                             <div className="col-sm-9">: 
-                                <span id="disp_jurusan2" className="badge bg-light text-dark border"> {peserta?.jurusan_pertama || "-"}</span>
+                                <span id="disp_jurusan2" className="badge bg-light text-dark border"> {peserta?.jurusan_kedua || "-"}</span>
                             </div>
                         </div>
                     </div>
@@ -157,6 +215,7 @@ const CekPeserta = () => {
 
                 {kategoriPertanyaan.map((kategori) => (
                     <div className="card shadow-sm mb-4" key={kategori.kode}>
+                        {/* Bagian Pertanyaan */}
                         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 className="mb-0 fw-bold">{kategori.kode}. {kategori.judul}</h5>
                             <span className="badge bg-light text-primary">Skor: 1 - 5</span>
@@ -172,59 +231,53 @@ const CekPeserta = () => {
                                         <div className="d-flex align-items-center gap-2">
                                             {[1, 2, 3, 4, 5].map((skor) => 
                                                 <div className="form-check form-check-inline" key={skor}>
-                                                    <input className="form-check-input" type="radio" name={`${kategori.kode}_skor`} id={`${kategori.kode}_${skor}`} value={skor} required />
-                                                    <label className="form-check-label" htmlFor={`${kategori.kode}_${skor}`}>{skor}</label>
+                                                    <input className="form-check-input" type="radio" id={`${item.kode}_${skor}`} name={ item.kode } value={skor} onChange={() => handleSkorChange(item.kode, skor)} />
+                                                    <label className="form-check-label" htmlFor={`${item.kode}_${skor}`}>{skor}</label>
                                                 </div>
                                             )}
                                         </div>                            
                                     </div>
-                                </div>                            
+                                </div>
                             )}
-                            <textarea className="form-control mb-2" name="deskripsi_1" rows="5" placeholder="Tulis deskripsi singkat jawaban..."></textarea> 
+                            <textarea className="form-control mb-2" rows="5" placeholder="Tulis deskripsi singkat jawaban..." value={deskripsi[kategori.kode] || ""} onChange={(e) => handleDeskripsiChange(kategori.kode, e.target.value)}></textarea> 
                         </div>
                     </div> 
                     
                 ))}
-                
+                {/* Bagian Catatan dan Kesimpulan */}
                 <div className="card shadow-sm mb-4">
                     <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">Catatan dan Kesimpulan</h5>
                     </div>
                     <div className="card-body">
+                        {/* Bagian Catatan Khusus Wawancara */}
                         <div className="mb-4">
                             <label className="form-label fw-semibold">Catatan Khusus Wawancara</label>
-                            <textarea className="form-control mb-2" name="catatan" rows="2" placeholder="Tulis deskripsi singkat jawaban..."></textarea>
+                            <textarea className="form-control mb-2" value={catatan} onChange={(e) => setCatatan(e.target.value)} rows="2" placeholder="Tulis deskripsi singkat jawaban..."></textarea>
                         </div>
+                        {/* Bagian Kesimpulan */}
                         <div className="mb-4">
                             <label className="form-label fw-semibold">Kesimpulan</label>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="k1_skor_5" id="k1_skor_5" value="5" required />
-                                <label className="form-check-label fw-bold" htmlFor="k1_skor_5">Sangat Direkomendasikan</label>
-                            </div>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="k1_skor_4" id="k1_skor_4" value="4" required />
-                                <label className="form-check-label fw-bold" htmlFor="k1_skor_4">Direkomendasikan</label>
-                            </div>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="k1_skor_3" id="k1_skor_3" value="3" required />
-                                <label className="form-check-label fw-bold" htmlFor="k1_skor_3">Butuh Pertimbangan</label>
-                            </div>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="k1_skor_2" id="k1_skor_2" value="2" required />
-                                <label className="form-check-label fw-bold" htmlFor="k1_skor_2">Tidak Direkomendasikan</label>
-                            </div>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="k1_skor_1" id="k1_skor_1" value="1" required />
-                                <label className="form-check-label fw-bold" htmlFor="k1_skor_1">Sangat Tidak Direkomendasikan</label>
-                            </div>
-                            
+                            {[
+                                {value: 5, Label: "Sangat Direkomendasikan"},
+                                {value: 4, Label: "Direkomendasikan"},
+                                {value: 3, Label: "Butuh Pertimbangan"},
+                                {value: 2, Label: "Tidak Direkomendasikan"},
+                                {value: 1, Label: "Sangat Tidak Direkomendasikan"}
+                            ].map((option) => (
+                                <div className="form-check" key={option.value}>
+                                    <input className="form-check-input" type="radio" name="kesimpulan" id={`k1_skor_${option.value}`} value={option.value} checked={kesimpulan === option.value.toString()} onChange={() => setKesimpulan(option.value.toString())} required />
+                                    <label className="form-check-label fw-bold" htmlFor={`k1_skor_${option.value}`}>{option.Label}</label>
+                                </div>
+                            ))}                         
                         </div>        
                     </div>
                 </div>
 
                 <div className="d-flex gap-3 justify-content-end mb-5">
-                    <button type="button" className="btn btn-outline-secondary px-4">Batal</button>
-                    <button type="submit" className="btn btn-success px-5 shadow-sm">Simpan Wawancara</button>
+                    <button type="submit" className="btn btn-success px-5 shadow-sm" disabled={loading}onClick={handleSubmitWawancara}>
+                        {loading ? "Menyimpan..." : "Simpan Hasil Wawancara"}
+                    </button>
                 </div>  
 
             </form>
@@ -233,6 +286,3 @@ const CekPeserta = () => {
 }
 
 export default CekPeserta;
-
-
-    
