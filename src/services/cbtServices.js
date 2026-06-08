@@ -7,7 +7,7 @@ export const getPertanyaanInterview = async () => {
     return response.data;
 }
 
-export const simpanJawabanInterview = async () => {
+export const simpanJawabanInterview = async (dataNilai) => {
     const response = await axios.post(`${API_URL}wawancara/simpan`, dataNilai);
     return response.data;
 }
