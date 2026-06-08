@@ -23,7 +23,7 @@ const CekPeserta = () => {
                 console.log("Data ditemukan:", response.data);
                 
                 // 2. Berpindah ke rute wawancara membawa user_id dari Laravel
-                navigate(`/wawancara/peserta/${response.data.nomorPendaftaran}`); 
+                navigate(`/wawancara/peserta/${response.data.user_id}`); 
             } else {
                 setError("Gagal mengambil data peserta.");
             }
