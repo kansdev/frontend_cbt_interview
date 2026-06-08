@@ -18,7 +18,8 @@ function App() {
             </ProtectedRoute>
           }>
           </Route>
-          <Route path="/" element={<LoginPewawancara />}></Route>                <Route path="/wawancara/peserta/:nomor_pendaftaran" element={<WawancaraPeserta />}></Route>
+          <Route path="/" element={<LoginPewawancara />}></Route>                
+          <Route path="/wawancara/peserta/:nomor_pendaftaran" element={<WawancaraPeserta />}></Route>
           <Route path="/wawancara/selesai/:nomor_pendaftaran" element={<SelesaiPeserta />}></Route>
         </Routes>
       </div>
