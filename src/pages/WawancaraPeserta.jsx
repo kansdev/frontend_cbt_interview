@@ -41,7 +41,7 @@ const CekPeserta = () => {
 
         try {
             const response = await simpanJawabanInterview(payload);
-            localStorage.setItem('response')
+            // localStorage.setItem('response', )
             console.log("Response dari API:", response);
             navigate(`/wawancara/selesai/${nomor_pendaftaran}`);
         } catch (error) {
