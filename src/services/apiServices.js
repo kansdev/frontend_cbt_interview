@@ -8,7 +8,7 @@ export const ApiCekPeserta = async (nomorPendaftaran) => {
     try {
         const response = await axios({
             method: 'POST',
-            url: `${API_URL}/cari-peserta`,
+            url: `${API_URL}/data-registrasi/${nomorPendaftaran}`,
             data: {
                 nomor_pendaftaran: nomorPendaftaran,
             },
