@@ -28,7 +28,7 @@ export const ApiCekPeserta = async (nomorPendaftaran) => {
 // Fungsi baru untuk mengambil detail berdasarkan ID
 export const getDetailPeserta = async (id) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/peserta/${id}`);
+        const response = await axios.get(`${API_URL_CBT}/peserta/${id}`);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : new Error("Network Error");
