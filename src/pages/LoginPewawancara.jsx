@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
-import handleLoginPewawancara from '../services/loginServices';
+import { handleLoginPewawancara } from '../services/loginServices';
 
 const LoginPewawancara = () => {
     const navigate = useNavigate();

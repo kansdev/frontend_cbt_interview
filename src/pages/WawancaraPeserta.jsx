@@ -64,6 +64,7 @@ const CekPeserta = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`https://spmb.smknusantara1kotang.sch.id/api/data-registrasi/interview/${nomor_pendaftaran}`); // 👈 Tembak API
+                // const response = await axios.get(`http://127.0.0.1:8080/api/data-registrasi/interview/${nomor_pendaftaran}`); // 👈 Tembak API
                 
                 if (response.status && response.data.status === "success") {
                     console.log("Data peserta ditemukan:", response.data.data);

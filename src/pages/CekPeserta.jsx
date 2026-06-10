@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from 'react-router-dom';
-import ApiCekPeserta from '../services/apiServices';
+import { ApiCekPeserta, getDetailPeserta } from '../services/apiServices';
+import { getDataPesertaInterview, getHasilWawancara } from '../services/cbtServices';
 
 // Komponen
 const CekPeserta = () => {
     const [nomorPendaftaran, setNomorPendaftaran] = useState("");    
-    const { peserta, setPeserta } = useState(null);
+    const [pewawancara_id, setPewawancaraId] = useState("");    
+    const [peserta, setPeserta] = useState(null);
+    const [wawancara, setWawancara] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -16,17 +19,22 @@ const CekPeserta = () => {
         setError(null);
 
         try {
-            // 1. Ambil data dari API Laravel
-            const response = await ApiCekPeserta(nomorPendaftaran);
-            
-            if (response.status === 'success') {
-                console.log("Data ditemukan:", response.data);
-                
-                // 2. Berpindah ke rute wawancara membawa user_id dari Laravel
-                navigate(`/wawancara/peserta/${response.data.nomor_pendaftaran}`); 
-            } else {
-                setError("Gagal mengambil data peserta.");
+            const response = await ApiCekPeserta(nomorPendaftaran);                             
+            if (response.status !== 'success') {
+                alert("Failed : " + response.message);
+                setError("Gagal mengambil data peserta.");     
+                return;           
             }
+
+            const res = await getDataPesertaInterview(nomorPendaftaran); 
+            console.log("RES:", res);           
+            if(res?.status === 'sudah_interview') {
+                console.log(res.message);
+                alert("Peserta ini sudah wawancara");
+                return;
+            }
+
+            navigate(`/wawancara/peserta/${response.data.nomor_pendaftaran}`); 
         } catch(error) {
             console.error("Error : ", error);
             setError(error.message || "Nomor pendaftaran tidak ditemukan.");
@@ -34,6 +42,23 @@ const CekPeserta = () => {
             setLoading(false);
         }        
     }
+
+    // Get data berdasarkan pewawanacara ID
+    useEffect(() => {
+        const fetchDataWawancara = async () => {
+            try {
+                const dataPewawancara = JSON.parse(localStorage.getItem('pewawancara'));
+                const response = await getHasilWawancara(dataPewawancara.id);
+                console.log(response);
+                if (response.status === 'success') {
+                    setWawancara(response.data);
+                }
+            } catch (error) {
+                return error.response ? error.response : new Error('API Network Error');
+            }
+        }
+        fetchDataWawancara();
+    }, []);
 
     if (loading) {
         return (
@@ -61,11 +86,11 @@ const CekPeserta = () => {
                             Cari Data Calon Siswa
                         </div>
                         <div className="card-body p-4">
-                            {error && (
+                            {/* {error && (
                                 <div className="alert alert-danger text-center" role="alert">
                                     {error}
                                 </div>
-                            )}
+                            )} */}
                             <form onSubmit={handleCariPeserta} className="mb-2">
                                 <div className="mb-3">
                                     <label htmlFor="no_registrasi" className="form-label fw-semibold">Nomor Registrasi / Pendaftaran</label>
@@ -75,9 +100,44 @@ const CekPeserta = () => {
                                     Cari & Mulai Wawancara
                                 </button>
                             </form>
-                            <button type="submit" className="btn btn-success btn-lg w-100" >
+                            <button type="submit" className="btn btn-success btn-lg w-100" data-bs-toggle="modal" data-bs-target="#modalHasilWawancara">
                                 Hasil Wawancara
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="modal fade" id="modalHasilWawancara">
+                <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div className="modal-content">
+                        <div className="modal-body">
+                            <table className="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nomor Pendaftar</th>
+                                        <th>Nama Peserta</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {wawancara.map((item, index) => (
+                                        <tr key={item.id}>
+                                            <td>{index + 1}</td>
+                                            <td>{item.nomor_pendaftaran}</td>
+                                            <td>{item.nama}</td>
+                                            <td>
+                                                <span className="badge bg-success">
+                                                    Sudah Wawancara
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
                         </div>
                     </div>
                 </div>

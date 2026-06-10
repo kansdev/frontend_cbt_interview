@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // URL API untuk ujian
 const API_URL = 'https://spmb.smknusantara1kotang.sch.id/api';
+// const API_URL = 'http://127.0.0.1:8080/api'
 
 // Fungsi mengecek peserta berdasarkan NISN dan gelombang
 export const ApiCekPeserta = async (nomorPendaftaran) => {
@@ -22,7 +23,8 @@ export const ApiCekPeserta = async (nomorPendaftaran) => {
         return response.data;
     } catch (error) {
         // Lempar error yang lebih spesifik jika ada response dari server atau jaringan error
-        throw error.response ? error.response.data : new Error('API Network Error');
+        // throw error.response ? error.response.data : new Error('API Network Error');
+        return error.response.data ? error.response.data : new Error('API Network Error');
     }
 }
 
@@ -35,5 +37,3 @@ export const getDetailPeserta = async (nomorPendaftaran) => {
         throw error.response ? error.response.data : new Error("Network Error");
     }
 };
-
-export default ApiCekPeserta;

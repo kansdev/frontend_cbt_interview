@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // URL API untuk ujian
 const API_URL = 'https://cbt.kansdev.my.id/api';
+// const API_URL = 'http://127.0.0.1:8000/api';
 
 export const handleLoginPewawancara = async (nip) => {
     try {
@@ -15,5 +16,3 @@ export const handleLoginPewawancara = async (nip) => {
         throw error.response ? error.response.data : new Error("Network Error");
     }
 }
-
-export default handleLoginPewawancara;
