@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = 'https://spmb.smknusantara1kotang.sch.id/api'
+const API_URL = 'https://cbt.smknusantara1kotang.sch.id/api'
 // const API_URL = 'http://127.0.0.1:8000/api'
 
 // Skrip baru 
