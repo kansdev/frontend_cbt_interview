@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL API untuk ujian
-const API_URL = 'https://cbt.kansdev.my.id/api';
+const API_URL = 'https://cbt.smknusantara1kotang.sch.id/api';
 // const API_URL = 'http://127.0.0.1:8000/api';
 
 export const handleLoginPewawancara = async (nip) => {
